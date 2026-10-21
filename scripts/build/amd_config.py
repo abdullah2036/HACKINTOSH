@@ -115,7 +115,11 @@ def main():
     apple_nvram = cfg["NVRAM"]["Add"]["7C436110-AB2A-4BBB-A880-FE41995C9F82"]
     apple_nvram["boot-args"] = "-v keepsyms=1 debug=0x100"
     apple_nvram["prev-lang:kbd"] = b"en-US:0"
-    apple_nvram["csr-active-config"] = bytes(4)
+    # SIP fully disabled (needed by the USB Wi-Fi driver); listed in Delete so it overrides NVRAM.
+    apple_nvram["csr-active-config"] = bytes.fromhex("FF0F0000")
+    apple_delete = cfg["NVRAM"]["Delete"]["7C436110-AB2A-4BBB-A880-FE41995C9F82"]
+    if "csr-active-config" not in apple_delete:
+        apple_delete.append("csr-active-config")
 
     # PlatformInfo.
     set_keys(cfg["PlatformInfo"]["Generic"], {

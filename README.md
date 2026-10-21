@@ -16,7 +16,7 @@ Apple images or personal identifiers are included; see [What's not here](#whats-
 | dGPU | NVIDIA RTX 3070 | Unsupported; hidden from macOS, used by Windows |
 | SSD | Kingston A2000 1 TB NVMe | Works (Windows + macOS partitions) |
 | Ethernet | Realtek RTL8111H | Works with RealtekRTL8111 |
-| Wi-Fi | TP-Link Archer T3U (RTL8812BU, USB) | No macOS driver exists |
+| Wi-Fi | TP-Link Archer T3U (RTL8812BU, USB `2357:012D`) | chris1111's USB driver (closed source, SIP off, menu-bar app) |
 
 ## Repository layout
 
@@ -30,12 +30,13 @@ scripts/
   build/       amd_config.py (generates config.plist from Sample.plist), oc_snapshot.py
   windows/     esp_check.bat, boot_fix.bat, ssd_update.bat (EFI partition + boot entries)
   tools/       split_pkg.py, xar_list.py, extents.ps1, usbmap.ps1
-  macos/       offline_install_from_usb.sh, install_iphone_support.sh
+  macos/       offline_install_from_usb.sh, install_iphone_support.sh, wifi_setup.sh
 ```
 
 ## Key settings
 
-- **Kexts:** Lilu 1.7.2, VirtualSMC 1.3.8, RealtekRTL8111 3.0.x, NootedRed 0.8.10 (added manually; not included)
+- **Kexts:** Lilu 1.7.2, VirtualSMC 1.3.8, RealtekRTL8111 3.0.x, NootedRed 0.8.10 (added manually; not included), RtWlanU + RtWlanU1827 (from [Wireless-USB-OC-Big-Sur-Adapter](https://github.com/chris1111/Wireless-USB-OC-Big-Sur-Adapter) V17; not included)
+- **SIP:** fully disabled, `csr-active-config = FF0F0000`, also listed in `NVRAM > Delete` so it replaces the value already stored in NVRAM
 - **Kernel patches:** [AMD_Vanilla](https://github.com/AMD-OSX/AMD_Vanilla), `cpuid_cores_per_package` set to `04`
 - **Quirks:** Dortania Zen settings; `ProvideCurrentCpuInfo` and `DummyPowerManagement` on
 - **SMBIOS:** MacBookPro16,3 (generate your own with GenSMBIOS; never reuse one)
@@ -58,11 +59,13 @@ scripts/
 11. **NootedRed is mostly fine, but dynamic/Aerial wallpapers freeze it.** Use still wallpapers and Reduce Motion. A second OpenCore copy in `EFI\OCSAFE` without NootedRed has its own firmware entry for recovering from bad settings (OpenCore reads its config from the folder it was launched from, `OpenCore.c`).
 12. **A firmware entry for OpenCore** was made with `bcdedit /copy {bootmgr}` then `path \EFI\OC\OpenCore.efi` (`scripts/windows/boot_fix.bat`).
 13. **iPhone USB tethering needs Apple's Mobile Device update.** It's in Apple's software update catalog (product `142-23719`, three packages) and installs offline with `installer -pkg`.
+14. **USB Wi-Fi does exist for Sequoia, with trade-offs.** chris1111's OpenCore package supports the Archer T3U (`RtWlanU.kext` has a `TPLink_012D_8812BU` personality), but needs SIP and Gatekeeper off and doesn't support WPA3. Its postinstall mounts the ESP, copies both kexts to `EFI/OC/Kexts` and merges them into `Kernel > Add` with PlistBuddy. It also unmounts any volume named `EFI`, so `wifi_setup.sh` copies itself off the USB before running. The kexts are also in the build folders, so `ssd_update.bat`'s mirror doesn't delete them.
+15. **OpenCore won't overwrite existing NVRAM values.** The log showed `csr-active-config - ignored, exists` until the key was added to `NVRAM > Delete`.
 
 ## What's not here
 
 - OpenCore, drivers and resources: [acidanthera/OpenCorePkg releases](https://github.com/acidanthera/OpenCorePkg/releases), [OcBinaryData](https://github.com/acidanthera/OcBinaryData)
-- Kexts: [Lilu](https://github.com/acidanthera/Lilu), [VirtualSMC](https://github.com/acidanthera/VirtualSMC), [RealtekRTL8111](https://github.com/Mieze/RTL8111_driver_for_OS_X), NootedRed from its [official releases](https://github.com/ChefKissInc/NootedRed/releases) under its own license
+- Kexts: [Lilu](https://github.com/acidanthera/Lilu), [VirtualSMC](https://github.com/acidanthera/VirtualSMC), [RealtekRTL8111](https://github.com/Mieze/RTL8111_driver_for_OS_X), NootedRed from its [official releases](https://github.com/ChefKissInc/NootedRed/releases) under its own license, RtWlanU from [chris1111's releases](https://github.com/chris1111/Wireless-USB-OC-Big-Sur-Adapter/releases)
 - macOS recovery and installer images: download from Apple (`macrecovery.py`, `gibMacOS`)
 - SMBIOS serial, MLB, UUID and ROM: replaced with placeholders; generate your own
 
