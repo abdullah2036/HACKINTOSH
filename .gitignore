@@ -1,0 +1,14 @@
+# Never commit binaries, Apple images, personal identifiers or backups.
+*.efi
+*.kext/
+*.dmg
+*.chunklist
+*.pkg
+*.pkg.part*
+*.zip
+opencore-*.txt
+panic-*.txt
+smbios.txt
+bcd_backup*
+esp_backup*
+*_log.txt
