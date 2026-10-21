@@ -39,7 +39,7 @@ scripts/
 - **SIP:** fully disabled, `csr-active-config = FF0F0000`, also listed in `NVRAM > Delete` so it replaces the value already stored in NVRAM
 - **Kernel patches:** [AMD_Vanilla](https://github.com/AMD-OSX/AMD_Vanilla), `cpuid_cores_per_package` set to `04`
 - **Quirks:** Dortania Zen settings; `ProvideCurrentCpuInfo` and `DummyPowerManagement` on
-- **SMBIOS:** MacBookPro16,3 (generate your own with GenSMBIOS; never reuse one)
+- **SMBIOS:** MacBookPro16,3 (generate your own with GenSMBIOS; never reuse one), `UpdateSMBIOSMode = Custom` with `CustomSMBIOSGuid` so only macOS sees it
 - **SecureBootModel:** `Disabled` (see lesson 10)
 - **RTX 3070:** hidden via DeviceProperties at `PciRoot(0x0)/Pci(0x1,0x1)/Pci(0x0,0x0)`
 - **BIOS:** IGFX Multi-Monitor on, Primary Video Device = IGFX, CSM off, Above 4G on, Secure Boot off
@@ -61,6 +61,7 @@ scripts/
 13. **iPhone USB tethering needs Apple's Mobile Device update.** It's in Apple's software update catalog (product `142-23719`, three packages) and installs offline with `installer -pkg`.
 14. **USB Wi-Fi does exist for Sequoia, with trade-offs.** chris1111's OpenCore package supports the Archer T3U (`RtWlanU.kext` has a `TPLink_012D_8812BU` personality), but needs SIP and Gatekeeper off and doesn't support WPA3. Its postinstall mounts the ESP, copies both kexts to `EFI/OC/Kexts` and merges them into `Kernel > Add` with PlistBuddy. It also unmounts any volume named `EFI`, so `wifi_setup.sh` copies itself off the USB before running. The kexts are also in the build folders, so `ssd_update.bat`'s mirror doesn't delete them.
 15. **OpenCore won't overwrite existing NVRAM values.** The log showed `csr-active-config - ignored, exists` until the key was added to `NVRAM > Delete`.
+16. **Windows lost activation ("hardware change") once it booted through OpenCore.** With `UpdateSMBIOSMode = Create`, OpenCore gives every OS the Mac SMBIOS, so Windows reported "Acidanthera MacBookPro16,3" instead of the ASUS board. `UpdateSMBIOSMode = Custom` plus the `CustomSMBIOSGuid` kernel quirk writes the Mac tables to a separate GUID that only (patched) macOS reads. The docs describe it as "avoiding a collision with existing Windows activation".
 
 ## What's not here
 

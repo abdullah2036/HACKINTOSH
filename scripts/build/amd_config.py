@@ -129,7 +129,10 @@ def main():
         "SystemUUID": smbios["uuid"],
         "ROM": bytes.fromhex(smbios["rom"]),
     }, "PlatformInfo->Generic")
-    set_keys(cfg["PlatformInfo"], {"UpdateSMBIOSMode": "Create", "Automatic": True}, "PlatformInfo")
+    # Custom + CustomSMBIOSGuid keep the Mac SMBIOS away from Windows (otherwise
+    # Windows sees "MacBookPro16,3" and loses activation).
+    set_keys(cfg["PlatformInfo"], {"UpdateSMBIOSMode": "Custom", "Automatic": True}, "PlatformInfo")
+    set_keys(cfg["Kernel"]["Quirks"], {"CustomSMBIOSGuid": True}, "Kernel->Quirks")
 
     # UEFI.
     set_keys(cfg["UEFI"]["Quirks"], {
